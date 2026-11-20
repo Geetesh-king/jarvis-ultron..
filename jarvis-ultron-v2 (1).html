@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>JARVIS × ULTRON</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap">
+<style>
+:root{--c:#22d3ee;--cd:#22d3ee44;--bg:#000;--tx:#cfe9f2;--dm:#6f8794;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-mode=ultron]{--c:#ff2a3d;--cd:#ff2a3d44;--tx:#f4d3d6;--dm:#94707a}
+:root[data-mode=standby]{--c:#7d8f9c;--cd:#7d8f9c33}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--tx);font:15px/1.45 "Rajdhani","Segoe UI",system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+.h{font-family:"Orbitron","Segoe UI",sans-serif;letter-spacing:.14em}
+header{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-bottom:1px solid var(--cd)}
+header b{color:var(--c);font-size:15px;transition:color .7s}
+#mic{width:12px;height:12px;border-radius:50%;background:#444;display:inline-block;margin-right:6px}
+#mic.on{background:#ff2a3d;box-shadow:0 0 8px #ff2a3d}
+main{flex:1;position:relative;overflow:hidden}
+.view{position:absolute;inset:0;overflow:auto;padding:12px 14px;display:none}
+.view.on{display:block}
+#v-core{padding:0;overflow:hidden}
+#cv{position:absolute;inset:0;width:100%;height:100%}
+.hud{position:absolute;border:1px solid var(--cd);background:#000a;padding:6px 9px;font-size:12px;color:var(--dm);transition:border-color .7s}
+.hud b{color:var(--c);font-weight:500;display:block;font-size:11px;letter-spacing:.1em}
+#hl{top:10px;left:10px}#hr{top:10px;right:10px;text-align:right}
+#hm{top:92px;left:10px;max-width:46%}
+#bot{position:absolute;left:0;right:0;bottom:0;padding:8px 12px 10px;background:linear-gradient(transparent,#000 35%)}
+#resp{min-height:40px;max-height:84px;overflow:auto;color:var(--tx);text-align:center;margin-bottom:6px}
+#stl{text-align:center;color:var(--c);font-size:12px;margin-bottom:4px}
+.row{display:flex;gap:8px;align-items:center}
+input[type=text]{flex:1;min-width:0;background:#06090c;border:1px solid var(--cd);color:var(--tx);border-radius:8px;padding:10px;font:inherit}
+button{background:#06090c;border:1px solid var(--c);color:var(--tx);border-radius:8px;padding:10px 12px;font:inherit;cursor:pointer}
+button:active{background:var(--cd)}button:focus-visible,input:focus-visible{outline:2px solid var(--c);outline-offset:2px}
+#micb{width:46px;height:46px;border-radius:50%;padding:0;font-size:18px}
+#micb.on{background:var(--cd);box-shadow:0 0 14px var(--c)}
+.stop{border-color:#ff2a3d;color:#ff8a95;font-weight:700}
+nav{display:flex;overflow-x:auto;border-top:1px solid var(--cd);background:#000}
+nav button{border:0;border-radius:0;flex:0 0 auto;padding:11px 14px;color:var(--dm);background:none;border-bottom:2px solid transparent}
+nav button.on{color:var(--c);border-bottom-color:var(--c)}
+h2{font-size:14px;color:var(--c);margin:14px 0 6px}h2:first-child{margin-top:0}
+.msg{margin:6px 0;padding:7px 10px;border-left:2px solid var(--c);background:#0a0f12}
+.msg.me{border-left-color:var(--dm);color:var(--dm)}
+.card{border:1px solid var(--cd);padding:9px 11px;margin:8px 0;background:#04070a}
+.ok{color:#4ade80}.pr{color:#facc15}.no{color:#f87171}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.perm{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--cd);gap:8px;flex-wrap:wrap}
+.perm label{margin-left:12px}
+#welcome{position:fixed;inset:0;background:#000;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;text-align:center}
+#welcome h1{font-size:26px;margin:0}.pair{display:flex;gap:12px;width:100%;max-width:420px}
+.pair button{flex:1;padding:22px 8px;font-size:16px}
+#bj{border-color:#22d3ee;color:#22d3ee}#bu{border-color:#ff2a3d;color:#ff2a3d}
+#flash{position:fixed;inset:0;pointer-events:none;opacity:0;z-index:8;background:var(--c)}
+#flash.go{animation:fl .8s ease-out}@keyframes fl{0%{opacity:.55}100%{opacity:0}}
+dialog{background:#080c0f;color:var(--tx);border:1px solid var(--c);border-radius:10px;max-width:340px}dialog::backdrop{background:#000b}
+.tab-note{color:var(--dm);font-size:13px}
+@media(prefers-reduced-motion:reduce){#flash.go{animation:none}}
+</style></head><body>
+<div id="welcome"><h1 class="h">JARVIS × ULTRON</h1><div class="tab-note">Two assistants. Pick who starts. You can switch any time by voice or button.</div>
+<div class="pair"><button id="bj" class="h">JARVIS<br><small>permission-based</small></button><button id="bu" class="h">ULTRON<br><small>autonomous</small></button></div>
+<div class="tab-note">Browser app: voice works in Chrome with mic allowed.</div></div>
+<div id="flash"></div>
+<header><span class="h"><span id="mic"></span><b id="who">STANDBY</b></span><span class="h" id="stl2" style="font-size:11px;color:var(--dm)">idle</span></header>
+<main>
+<div class="view on" id="v-core"><canvas id="cv"></canvas>
+<div class="hud" id="hl"><b>TIME</b><span id="tm"></span></div>
+<div class="hud" id="hr"><b>SYSTEM</b><span id="sy"></span></div>
+<div class="hud" id="hm"><b id="hmt">STATUS</b><span id="hmb"></span></div>
+<div id="bot"><div id="stl"></div><div id="resp">Say “Hey Jarvis” or “Hey Ultron”.</div>
+<div class="row"><button id="micb" aria-label="Microphone">🎙</button><input type="text" id="in" placeholder="Type a command" aria-label="Command"><button id="send">Run</button></div>
+<div class="row" style="margin-top:6px"><button data-m="jarvis" style="flex:1">Jarvis</button><button data-m="ultron" style="flex:1">Ultron</button><button data-m="standby" style="flex:1">Standby</button><button class="stop" id="kill" style="flex:1">STOP ULTRON</button></div></div></div>
+<div class="view" id="v-chat"></div>
+<div class="view" id="v-apps"></div>
+<div class="view" id="v-perm"></div>
+<div class="view" id="v-task"></div>
+<div class="view" id="v-mem"></div>
+<div class="view" id="v-game"></div>
+<div class="view" id="v-sys"></div>
+</main>
+<nav id="nav"></nav>
+<dialog id="dlg"><p id="dm"></p><div class="row"><button id="dy">Allow</button><button id="da">Always</button><button id="dn">Deny</button></div></dialog>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+var S={mode:'standby',state:'idle',killed:false,run:0,listen:false,st:null};
+var K=['open','search','timer','message','memory'];
+var D={perms:{jarvis:{},ultron:{}},mem:[],hist:[],chat:[]};
+try{var s=localStorage.getItem('jux');if(s)D=Object.assign(D,JSON.parse(s))}catch(e){}
+function save(){try{localStorage.setItem('jux',JSON.stringify(D))}catch(e){}}
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function hhmm(){return new Date().toLocaleTimeString()}
+// ---------- state
+function setState(st,ms){S.state=st;$('stl2').textContent=st;$('stl').textContent=st==='idle'?'':st.toUpperCase();clearTimeout(S.st);if(ms)S.st=setTimeout(function(){setState('idle')},ms)}
+function applyMode(){document.documentElement.dataset.mode=S.mode;$('who').textContent=S.mode.toUpperCase();
+ var f=$('flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');renderAll()}
+function setMode(m){if(m==='ultron')S.killed=false;S.run++;try{speechSynthesis.cancel()}catch(e){}
+ D.hist.unshift({t:hhmm(),w:m,c:'mode → '+m,r:'ok'});S.mode=m;applyMode();setState('idle');
+ if(m==='jarvis')reply('Good day. Jarvis is online, and listening.');else if(m==='ultron')reply('Ultron online. State your objective.');else{$('resp').textContent='Standby.'}}
+function emergency(){S.killed=true;S.run++;try{speechSynthesis.cancel()}catch(e){}D.hist.unshift({t:hhmm(),w:'ultron',c:'EMERGENCY STOP',r:'stopped'});S.mode='standby';applyMode();$('resp').textContent='ULTRON stopped. All automation interrupted.';setState('error',1500);save()}
+// ---------- voice out
+function say(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.pitch=S.mode==='ultron'?.25:1.05;u.rate=S.mode==='ultron'?.85:1;
+ u.onstart=function(){setState('speaking')};u.onend=function(){if(S.state==='speaking')setState('idle')};speechSynthesis.speak(u)}catch(e){}}
+function reply(t,err){$('resp').textContent=t;D.chat.push({me:0,w:S.mode,t:t});if(D.chat.length>80)D.chat.shift();save();if(err)setState('error',1800);else say(t);renderChat()}
+// ---------- permissions
+function dlg(msg,always){return new Promise(function(res){var d=$('dlg');$('dm').textContent=msg;$('da').style.display=always?'':'none';
+ $('dy').onclick=function(){d.close();res('y')};$('da').onclick=function(){d.close();res('a')};$('dn').onclick=function(){d.close();res('n')};d.oncancel=function(){res('n')};d.showModal()})}
+async function auth(kind,label,sens){var w=S.mode;if(w==='standby')return false;
+ if(!sens&&D.perms[w][kind])return true;
+ if(!sens&&w==='ultron'){D.hist.unshift({t:hhmm(),w:w,c:label,r:'blocked: no permission'});reply('No authorization for '+kind+'. Enable it under Permissions.',true);return false}
+ var r=await dlg((w==='jarvis'?'Jarvis':'Ultron')+' wants to: '+label,!sens);
+ if(r==='a'){D.perms[w][kind]=true;save();renderPerm()}return r!=='n'}
+// ---------- actions
+function open(u){window.open(u,'_blank','noopener')}
+async function exec(c){var l=c.toLowerCase(),m;
+ if(m=l.match(/^(?:search|google|look up)(?: for)?\s+(.+)/)){if(await auth('search','search the web for “'+m[1]+'”')){open('https://www.google.com/search?q='+encodeURIComponent(m[1]));return 'Searching for '+m[1]}return 'Cancelled'}
+ if(m=l.match(/^open\s+(.+)/)){var n=m[1].replace(/\s/g,'');var u=n.indexOf('.')>0?n:n+'.com';if(await auth('open','open '+u)){open('https://'+u);return 'Opening '+u}return 'Cancelled'}
+ if(m=l.match(/(?:timer|remind(?: me)?)(?: in| for)?\s*(\d+)\s*(second|sec|minute|min)/)){var sec=+m[1]*(/^min/.test(m[2])?60:1);if(!await auth('timer','set a reminder in '+sec+' seconds'))return 'Cancelled';
+  try{if(window.Notification&&Notification.permission==='default')await Notification.requestPermission()}catch(e){}
+  var who=S.mode;setTimeout(function(){D.hist.unshift({t:hhmm(),w:who,c:'reminder fired',r:'ok'});renderTask();try{if(Notification.permission==='granted')new Notification('Reminder',{body:c})}catch(e){}if(S.mode===who)say('Reminder: '+c)},sec*1000);return 'Reminder set for '+sec+' seconds'}
+ if(m=l.match(/^(?:send|text)(?: a)? message(?: saying| to)?\s*(.+)/)){if(await auth('message','draft SMS “'+m[1]+'” (you press Send)',S.mode==='jarvis')){location.href='sms:?body='+encodeURIComponent(m[1]);return 'Message drafted'}return 'Not sent'}
+ if(m=l.match(/^remember(?: that)?\s+(.+)/)){if(await auth('memory','save to memory: “'+m[1]+'”')){D.mem.push({w:S.mode,t:m[1]});save();renderMem();return 'Remembered'}return 'Cancelled'}
+ if(/what do you remember|my memory/.test(l)){var mine=D.mem.filter(function(x){return x.w===S.mode});return mine.length?'I remember: '+mine.map(function(x){return x.t}).join('; '):'I have nothing stored yet'}
+ if(/^delete\b/.test(l))return 'Deleting files is not supported in the browser. Nothing was removed.';
+ if(/\b(pay|payment|purchase|buy)\b/.test(l))return 'Payments are never automated. Please pay yourself.';
+ if(/battery/.test(l)){return $('sy').textContent.split('\n')[0]||'Battery unavailable'}
+ if(/time/.test(l))return 'It is '+new Date().toLocaleTimeString();
+ if(/(free fire|game|play\b|gameplay|youtuber)/.test(l)){
+  if(S.mode!=='ultron')return 'Gaming intelligence is exclusive to Ultron.';
+  setState('analyzing',2500);open('https://www.youtube.com/results?search_query='+encodeURIComponent(l.replace(/hey ultron|play|start/g,'')+' gameplay strategy'));
+  return 'I cannot read or control another app’s screen from the browser, and automated play breaks anti-cheat rules. I opened strategy videos so you can study them.'}
+ if(/analy[sz]e (my )?screen/.test(l)){setState('error',1800);return 'Screen analysis is not available in this build.'}
+ throw new Error('unrecognised')}
+function plan(c){return c.split(/\s*(?:,\s*then|,\s*and then|\bthen\b|;)\s*/i).filter(Boolean)}
+async function run(raw){raw=(raw||'').trim();if(!raw)return;D.chat.push({me:1,t:raw});var l=raw.toLowerCase();
+ if(/stop ultron/.test(l))return emergency();
+ if(/hey jarvis|switch to jarvis/.test(l))return setMode('jarvis');
+ if(/hey ultron|switch to ultron/.test(l)){setMode('ultron');l=l.replace(/hey ultron,?|switch to ultron/,'').trim();if(!l)return;raw=l}
+ if(/go to standby/.test(l))return setMode('standby');
+ if(S.mode==='standby'){reply('Standby. Say Hey Jarvis or Hey Ultron.',true);return}
+ if(S.killed){reply('Ultron is stopped.',true);return}
+ var id=++S.run,steps=S.mode==='ultron'?plan(raw):[raw],rec={t:hhmm(),w:S.mode,c:raw,r:'running'};D.hist.unshift(rec);setState('thinking');
+ for(var i=0;i<steps.length;i++){if(id!==S.run||S.killed)return;
+  $('hmb').textContent=(steps.length>1?'Step '+(i+1)+'/'+steps.length+': ':'')+steps[i];
+  setState('executing');var r;
+  try{r=await exec(steps[i])}catch(e){if(S.mode==='ultron'){try{r=await exec(steps[i])}catch(e2){r='I could not interpret that. No AI model is connected in this build, only keyword commands.';rec.r='failed';reply(r,true);renderTask();return}}else{rec.r='failed';reply('I do not understand that yet. No AI model is connected in this build.',true);renderTask();return}}
+  if(id!==S.run||S.killed)return;reply(r)}
+ rec.r='done';save();renderTask()}
+// ---------- mic + wake word
+var rec=null;
+function mic(){var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){reply('Speech recognition is not supported here. Use Chrome, or type commands.',true);return}
+ if(S.listen){S.listen=false;try{rec.stop()}catch(e){}$('mic').classList.remove('on');$('micb').classList.remove('on');return}
+ rec=new SR();rec.continuous=true;rec.interimResults=false;rec.lang='en-US';
+ rec.onresult=function(e){for(var i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal){var t=e.results[i][0].transcript.trim().replace(/jar\s?vis/ig,'jarvis').replace(/ultr[ao]n/ig,'ultron');var l=t.toLowerCase();
+  if(S.mode==='standby'&&!/hey (jarvis|ultron)|switch to|stop ultron/.test(l))continue;try{speechSynthesis.cancel()}catch(x){}setState('listening',700);setTimeout(function(){run(t)},300)}};
+ rec.onerror=function(e){if(e.error==='not-allowed'||e.error==='service-not-allowed'){S.listen=false;$('mic').classList.remove('on');$('micb').classList.remove('on');reply('Microphone blocked. Allow it in your browser’s site settings.',true)}};
+ rec.onend=function(){if(S.listen)try{rec.start()}catch(e){}};
+ try{rec.start();S.listen=true;$('mic').classList.add('on');$('micb').classList.add('on')}catch(e){reply('Could not start microphone',true)}}
+// ---------- screens
+var TABS=[['core','Core'],['chat','Chat'],['apps','Apps'],['perm','Access'],['task','Tasks'],['mem','Memory'],['game','Gaming'],['sys','System']];
+function tab(t){document.querySelectorAll('.view').forEach(function(v){v.classList.toggle('on',v.id==='v-'+t)});document.querySelectorAll('nav button').forEach(function(b){b.classList.toggle('on',b.dataset.t===t)});renderAll()}
+$('nav').innerHTML=TABS.map(function(t){return '<button data-t="'+t[0]+'" class="h" style="font-size:11px">'+t[1]+'</button>'}).join('');
+$('nav').querySelectorAll('button').forEach(function(b){b.onclick=function(){tab(b.dataset.t)}});$('nav').firstChild.classList.add('on');
+function renderChat(){$('v-chat').innerHTML='<h2 class="h">CONVERSATION</h2>'+(D.chat.length?D.chat.map(function(m){return '<div class="msg'+(m.me?' me':'')+'">'+esc(m.t)+'</div>'}).join(''):'<div class="tab-note">No messages yet.</div>')}
+var APPS=[['YouTube','youtube.com'],['Gmail','mail.google.com'],['Maps','maps.google.com'],['Calendar','calendar.google.com'],['Spotify','open.spotify.com'],['WhatsApp','web.whatsapp.com'],['Google','google.com'],['Wikipedia','wikipedia.org'],['News','news.google.com']];
+function renderApps(){$('v-apps').innerHTML='<h2 class="h">APPLICATION LAUNCHER</h2><div class="tab-note">Opens websites. Native phone apps need the Android version.</div><div class="grid" style="margin-top:8px">'+APPS.map(function(a){return '<button data-u="'+a[1]+'">'+a[0]+'</button>'}).join('')+'</div>';
+ $('v-apps').querySelectorAll('button').forEach(function(b){b.onclick=function(){if(S.mode==='standby'){reply('Activate an assistant first.',true);tab('core');return}run('open '+b.dataset.u)}})}
+function renderPerm(){$('v-perm').innerHTML='<h2 class="h">PERMISSIONS</h2><div class="tab-note">Jarvis asks first, then can remember your choice. Ultron only runs what is enabled here. Payments and deletes always ask.</div>'+
+ K.map(function(k){return '<div class="perm"><span>'+k+'</span><span>'+['jarvis','ultron'].map(function(w){return '<label><input type="checkbox" data-w="'+w+'" data-k="'+k+'"'+(D.perms[w][k]?' checked':'')+'> '+w+'</label>'}).join('')+'</span></div>'}).join('')+
+ '<div class="card">Ultron autonomy: runs approved actions without prompts. <b>STOP ULTRON</b> interrupts at once.</div>';
+ $('v-perm').querySelectorAll('input').forEach(function(c){c.onchange=function(){D.perms[c.dataset.w][c.dataset.k]=c.checked;save()}})}
+function renderTask(){$('v-task').innerHTML='<h2 class="h">TASK HISTORY</h2>'+(D.hist.length?D.hist.slice(0,60).map(function(h){return '<div class="card"><b>'+esc(h.w)+'</b> · '+esc(h.t)+'<br>'+esc(h.c)+' <span class="'+(h.r==='done'||h.r==='ok'?'ok':h.r==='running'?'pr':'no')+'">'+esc(h.r)+'</span></div>'}).join(''):'<div class="tab-note">Nothing yet.</div>')+'<button id="clh" style="margin-top:8px">Clear history</button>';$('clh').onclick=function(){D.hist=[];save();renderTask()}}
+function renderMem(){$('v-mem').innerHTML='<h2 class="h">MEMORY</h2><div class="tab-note">Say “remember that I like…”. Stored on this device only.</div>'+(D.mem.length?D.mem.map(function(m,i){return '<div class="card">'+esc(m.t)+' <small style="color:var(--dm)">('+m.w+')</small> <button data-i="'+i+'" style="float:right;padding:2px 8px">Delete</button></div>'}).join(''):'<div class="tab-note">Empty.</div>');
+ $('v-mem').querySelectorAll('button').forEach(function(b){b.onclick=function(){D.mem.splice(+b.dataset.i,1);save();renderMem()}})}
+function renderGame(){var u=S.mode==='ultron';$('v-game').innerHTML='<h2 class="h">GAMING INTELLIGENCE</h2>'+(u?'<div class="card">Exclusive to Ultron. Active.</div>':'<div class="card no">Locked. Exclusive to Ultron. Say “Hey Ultron”.</div>')+
+ '<div class="card"><span class="ok">Available:</span> strategy video search, tips, reminders.</div><div class="card"><span class="no">Not possible in a browser:</span> reading a game screen, tapping controls, copying a creator’s play. Automated play also breaks game and anti-cheat rules and can get your account banned.</div>'+(u?'<button id="gs">Search Free Fire strategy videos</button>':'')+'';
+ if(u)$('gs').onclick=function(){run('play free fire like a pro')}}
+function renderSys(){var SR=window.SpeechRecognition||window.webkitSpeechRecognition;$('v-sys').innerHTML='<h2 class="h">HELP AND DIAGNOSTICS</h2>'+
+ [['Speech recognition',SR?'supported':'not supported'],['Speech output',window.speechSynthesis?'supported':'not supported'],['Microphone listening',S.listen?'on':'off'],['Network',navigator.onLine?'online':'offline'],['CPU threads',navigator.hardwareConcurrency||'n/a'],['Version','web 2.0']].map(function(r){return '<div class="perm"><span>'+r[0]+'</span><span>'+r[1]+'</span></div>'}).join('')+
+ '<div class="card">No AI language model is connected. Commands are keyword-based: open, search, timer, message, remember. The sphere reacts to assistant state, not live audio.</div><button id="tv">Test voice</button> <button id="rs" class="stop">Reset all data</button>';
+ $('tv').onclick=function(){say('Voice test. This is '+(S.mode==='ultron'?'Ultron':'Jarvis')+'.')};$('rs').onclick=function(){D={perms:{jarvis:{},ultron:{}},mem:[],hist:[],chat:[]};save();renderAll()}}
+function renderAll(){renderChat();renderApps();renderPerm();renderTask();renderMem();renderGame();renderSys();$('hmt').textContent=S.mode==='ultron'?'MISSION':'TASK';if(S.mode!=='ultron'&&!S.run)$('hmb').textContent='None'}
+// ---------- HUD
+var batt='Battery n/a';
+try{if(navigator.getBattery)navigator.getBattery().then(function(b){function u(){batt='Battery '+Math.round(b.level*100)+'%'+(b.charging?' ⚡':'')}u();b.onlevelchange=u;b.onchargingchange=u})}catch(e){}
+setInterval(function(){var d=new Date();$('tm').innerHTML=d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'})+'<br>'+d.toLocaleDateString();$('sy').textContent=batt+'\n'+(navigator.onLine?'Online':'Offline');$('sy').style.whiteSpace='pre'},1000);
+// ---------- spheres
+var cv=$('cv'),cx=cv.getContext('2d'),W=0,H=0,dpr=1,A={j:0,u:0},spd=.25,rot=0,rot2=0,last=0,amp=0,noise=0,P=[];
+function fit(){dpr=Math.min(2,window.devicePixelRatio||1);W=cv.clientWidth;H=cv.clientHeight;cv.width=W*dpr;cv.height=H*dpr;cx.setTransform(dpr,0,0,dpr,0,0)}
+window.addEventListener('resize',fit);
+for(var i=0;i<45;i++)P.push({a:Math.random()*6.28,r:1.1+Math.random()*.7,s:(Math.random()-.5)*.6,z:Math.random()});
+var N=300,FP=[];for(i=0;i<N;i++){var y=1-2*(i+.5)/N,rr=Math.sqrt(1-y*y),th=i*2.39996;FP.push([Math.cos(th)*rr,y,Math.sin(th)*rr])}
+function col(rgb,a){return 'rgba('+rgb+','+a+')'}
+function glow(x,y,r,rgb,a){var g=cx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,col(rgb,a));g.addColorStop(1,col(rgb,0));cx.fillStyle=g;cx.beginPath();cx.arc(x,y,r,0,6.283);cx.fill()}
+function drawJ(x,y,R,a,rgb,t){if(a<.01)return;var Rs=R*(1+amp);glow(x,y,Rs*1.7,rgb,.22*a);
+ var ay=rot*1.2,ca=Math.cos(ay),sa=Math.sin(ay),tl=.4,ct=Math.cos(tl),st=Math.sin(tl);
+ for(var i=0;i<N;i++){var p=FP[i],px=p[0]*ca+p[2]*sa,pz=-p[0]*sa+p[2]*ca,py=p[1]*ct-pz*st,pz2=p[1]*st+pz*ct,d=(pz2+1)/2;
+  cx.fillStyle=col(rgb,(.12+.88*d)*a);var s=.8+2.2*d;cx.fillRect(x+px*Rs-s/2,y+py*Rs-s/2,s,s)}
+ glow(x,y,Rs*.55,rgb,.35*a);
+ for(var k=0;k<3;k++){cx.save();cx.translate(x,y);cx.rotate(rot2*(k%2?-1:1)*(.6+k*.3)+k*1.0);cx.scale(1,.32+k*.08);cx.strokeStyle=col(rgb,(.7-k*.15)*a);cx.lineWidth=1.4;cx.setLineDash(k===1?[3,6]:[]);cx.beginPath();cx.arc(0,0,R*(1.25+k*.2),0,6.283);cx.stroke();cx.restore()}
+ cx.setLineDash([]);cx.strokeStyle=col(rgb,.8*a);cx.lineWidth=2;cx.beginPath();cx.arc(x,y,R*1.15,rot*2,rot*2+1.4);cx.stroke();cx.beginPath();cx.arc(x,y,R*1.15,rot*2+3.14,rot*2+4.2);cx.stroke();
+ P.forEach(function(q){var an=q.a+rot2*q.s*2,rr=R*q.r;cx.fillStyle=col(rgb,.5*a*q.z);cx.fillRect(x+Math.cos(an)*rr,y+Math.sin(an)*rr*.9,1.8,1.8)});
+ if(S.state==='executing'||S.state==='analyzing'){var sy=y+Math.sin(t*3)*Rs;cx.fillStyle=col(rgb,.35*a);cx.fillRect(x-Rs,sy,Rs*2,2)}}
+function drawU(x,y,R,a,rgb,t){if(a<.01)return;var Rs=R*(1+amp);glow(x,y,Rs*1.8,rgb,.3*a);
+ cx.fillStyle='rgba(20,0,2,'+.9*a+')';cx.beginPath();cx.arc(x,y,Rs*.62,0,6.283);cx.fill();
+ cx.strokeStyle=col(rgb,.9*a);cx.lineWidth=2;cx.beginPath();for(var i=0;i<=56;i++){var an=i/56*6.283+rot*.8,rd=Rs*(.46+(i%2?.12+.05*Math.sin(t*9+i):.0));cx.lineTo(x+Math.cos(an)*rd,y+Math.sin(an)*rd)}cx.closePath();cx.stroke();
+ glow(x,y,Rs*.4,rgb,.9*a);cx.fillStyle='rgba(255,230,230,'+.85*a+')';cx.beginPath();cx.arc(x,y,Rs*.07,0,6.283);cx.fill();
+ for(var r=0;r<4;r++){var rad=Rs*(.75+r*.17),segs=[6,8,10,12][r],dir=r%2?-1:1,w=[9,4,7,3][r];cx.lineWidth=w;
+  for(var s=0;s<segs;s++){var a0=rot*dir*(.7+r*.25)+s/segs*6.283,gap=r===1?.5:.25;cx.strokeStyle=col(rgb,(.35+.2*(s%3))*a);cx.beginPath();cx.arc(x,y,rad,a0,a0+6.283/segs*(1-gap));cx.stroke()}}
+ cx.lineWidth=1;cx.strokeStyle=col(rgb,.6*a);for(var k=0;k<72;k++){var an2=k/72*6.283-rot*.4,r1=Rs*1.5,r2=r1+(k%6?5:12);cx.beginPath();cx.moveTo(x+Math.cos(an2)*r1,y+Math.sin(an2)*r1);cx.lineTo(x+Math.cos(an2)*r2,y+Math.sin(an2)*r2);cx.stroke()}
+ cx.beginPath();for(k=0;k<6;k++){var h=k/6*6.283+rot2*.3;cx.lineTo(x+Math.cos(h)*Rs*1.3,y+Math.sin(h)*Rs*1.3)}cx.closePath();cx.stroke();
+ if(S.state==='analyzing'||S.state==='executing'){var sw=t*2.5;var g=cx.createConicGradient?cx.createConicGradient(sw,x,y):null;if(g){g.addColorStop(0,col(rgb,.5*a));g.addColorStop(.18,col(rgb,0));g.addColorStop(1,col(rgb,0));cx.fillStyle=g;cx.beginPath();cx.arc(x,y,Rs*1.5,0,6.283);cx.fill()}}}
+function wave(x,y,w,rgb,a,t){var n=36,bw=w/n;cx.fillStyle=col(rgb,.8*a);var lv={idle:.08,listening:.35,speaking:.9,thinking:.2,executing:.5,analyzing:.4,error:.05}[S.state];
+ for(var i=0;i<n;i++){var e=1-Math.abs(i-n/2)/(n/2),h=3+lv*34*e*(.5+.5*Math.abs(Math.sin(t*6+i*.7)))*(S.state==='speaking'?.6+noise:1);cx.fillRect(x-w/2+i*bw,y-h/2,bw*.6,h)}}
+function warn(x,y,R,t){var on=Math.sin(t*10)>0;cx.strokeStyle=S.mode==='ultron'?(on?'#fff':'#ff2a3d'):(on?'#fbbf24':'#22d3ee');cx.lineWidth=4;cx.beginPath();cx.moveTo(x,y-R*.45);cx.lineTo(x+R*.4,y+R*.3);cx.lineTo(x-R*.4,y+R*.3);cx.closePath();cx.stroke();cx.fillStyle=cx.strokeStyle;cx.fillRect(x-3,y-R*.15,6,R*.25);cx.fillRect(x-3,y+R*.15,6,6)}
+function frame(ts){requestAnimationFrame(frame);if(!W||!H)fit();var t=ts/1000,dt=Math.min(.05,t-last);last=t;
+ A.j+=((S.mode==='jarvis'?1:S.mode==='standby'?.35:0)-A.j)*.09;A.u+=((S.mode==='ultron'?1:0)-A.u)*.09;
+ var sp={idle:.25,listening:.4,thinking:1.5,speaking:.6,executing:1.1,analyzing:.8,error:.04}[S.state];spd+=(sp-spd)*.06;rot+=dt*spd;rot2+=dt*spd*.7;
+ noise+=((Math.random()*.5)-noise)*.25;var br=.025*Math.sin(t*1.5);
+ var tg=S.state==='listening'?.05+.04*Math.sin(t*9):S.state==='speaking'?.04+noise*.12:S.state==='executing'?.06*Math.abs(Math.sin(t*7)):0;amp+=(tg+br-amp)*.2;
+ cx.fillStyle='#000';cx.fillRect(0,0,W,H);var x=W/2,y=H*.36,R=Math.min(W*.3,H*.22);
+ var std=S.mode==='standby';drawJ(x,y,R,A.j,std?'125,143,156':'34,211,238',t);drawU(x,y,R,A.u,'255,42,61',t);
+ wave(x,y+R*2+18,Math.min(W*.8,360),std?'125,143,156':(S.mode==='ultron'?'255,42,61':'34,211,238'),1,t);
+ if(S.state==='error')warn(x,y,R,t)}
+// ---------- wire up
+$('micb').onclick=mic;$('send').onclick=function(){var v=$('in').value;$('in').value='';run(v)};
+$('in').onkeydown=function(e){if(e.key==='Enter')$('send').click()};
+$('kill').onclick=emergency;cv.onclick=function(){try{speechSynthesis.cancel()}catch(e){}if(S.state==='speaking')setState('idle')};
+document.querySelectorAll('[data-m]').forEach(function(b){b.onclick=function(){setMode(b.dataset.m)}});
+$('bj').onclick=function(){$('welcome').style.display='none';setMode('jarvis')};$('bu').onclick=function(){$('welcome').style.display='none';setMode('ultron')};
+renderAll();fit();requestAnimationFrame(frame);
+})();
+</script></body></html>
